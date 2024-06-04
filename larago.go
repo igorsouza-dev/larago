@@ -1,5 +1,11 @@
 package larago
 
+import (
+	"fmt"
+
+	"github.com/joho/godotenv"
+)
+
 type Larago struct {
 	AppName string
 	Debug   bool
@@ -17,6 +23,17 @@ func (l *Larago) New(rootPath string) error {
 		return err
 	}
 
+	err = l.CheckDotEnv(rootPath)
+
+	if err != nil {
+		return err
+	}
+	err = godotenv.Load(rootPath + "/.env")
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -28,6 +45,14 @@ func (l *Larago) Init(p initPaths) error {
 		if err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+func (l *Larago) CheckDotEnv(path string) error {
+	err := l.CreateFileIfNotExists(fmt.Sprintf("%s/.env", path))
+	if err != nil {
+		return err
 	}
 	return nil
 }
