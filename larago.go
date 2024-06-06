@@ -2,14 +2,19 @@ package larago
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
 type Larago struct {
-	AppName string
-	Debug   bool
-	Version string
+	AppName  string
+	Debug    bool
+	Version  string
+	ErrorLog *log.Logger
+	InfoLog  *log.Logger
 }
 
 func (l *Larago) New(rootPath string) error {
@@ -34,6 +39,15 @@ func (l *Larago) New(rootPath string) error {
 		return err
 	}
 
+	// create logs
+	infoLog, errorLog := l.startLoggers()
+
+	l.InfoLog = infoLog
+	l.ErrorLog = errorLog
+	l.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
+	l.Version = os.Getenv("VERSION")
+	l.AppName = os.Getenv("APP_NAME")
+
 	return nil
 }
 
@@ -55,4 +69,14 @@ func (l *Larago) CheckDotEnv(path string) error {
 		return err
 	}
 	return nil
+}
+
+func (l *Larago) startLoggers() (*log.Logger, *log.Logger) {
+	var infoLog *log.Logger
+	var errorLog *log.Logger
+
+	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	return infoLog, errorLog
 }
