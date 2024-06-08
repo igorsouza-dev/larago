@@ -3,9 +3,12 @@ package larago
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"strconv"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/joho/godotenv"
 )
 
@@ -15,6 +18,13 @@ type Larago struct {
 	Version  string
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
+	Routes   *chi.Mux
+	config   config
+}
+
+type config struct {
+	port     string
+	renderer string
 }
 
 func (l *Larago) New(rootPath string) error {
@@ -28,7 +38,7 @@ func (l *Larago) New(rootPath string) error {
 		return err
 	}
 
-	err = l.CheckDotEnv(rootPath)
+	err = l.checkDotEnv(rootPath)
 
 	if err != nil {
 		return err
@@ -47,6 +57,12 @@ func (l *Larago) New(rootPath string) error {
 	l.Debug, _ = strconv.ParseBool(os.Getenv("DEBUG"))
 	l.Version = os.Getenv("VERSION")
 	l.AppName = os.Getenv("APP_NAME")
+	l.Routes = l.routes().(*chi.Mux)
+
+	l.config = config{
+		port:     os.Getenv("PORT"),
+		renderer: os.Getenv("RENDERER"),
+	}
 
 	return nil
 }
@@ -55,16 +71,33 @@ func (l *Larago) Init(p initPaths) error {
 	root := p.rootPath
 
 	for _, path := range p.folderNames {
-		err := l.CreateDirIfNotExist(root + "/" + path)
+		err := l.createDirIfNotExist(root + "/" + path)
 		if err != nil {
 			return err
 		}
 	}
 	return nil
 }
+func (l *Larago) ListenAndServe() error {
+	srv := &http.Server{
+		Addr:         fmt.Sprintf(":%s", l.config.port),
+		Handler:      l.routes(),
+		ErrorLog:     l.ErrorLog,
+		IdleTimeout:  30 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 600 * time.Second,
+	}
+	l.InfoLog.Printf("Starting server on port %s", l.config.port)
+	err := srv.ListenAndServe()
 
-func (l *Larago) CheckDotEnv(path string) error {
-	err := l.CreateFileIfNotExists(fmt.Sprintf("%s/.env", path))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+func (l *Larago) checkDotEnv(path string) error {
+	err := l.createFileIfNotExists(fmt.Sprintf("%s/.env", path))
 	if err != nil {
 		return err
 	}

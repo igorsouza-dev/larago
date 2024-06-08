@@ -2,7 +2,7 @@ package larago
 
 import "os"
 
-func (l *Larago) CreateDirIfNotExist(path string) error {
+func (l *Larago) createDirIfNotExist(path string) error {
 	const mode = 0755
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err := os.Mkdir(path, mode)
@@ -13,7 +13,7 @@ func (l *Larago) CreateDirIfNotExist(path string) error {
 	return nil
 }
 
-func (l *Larago) CreateFileIfNotExists(path string) error {
+func (l *Larago) createFileIfNotExists(path string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		var file, err = os.Create(path)
 
