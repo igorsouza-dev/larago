@@ -86,7 +86,7 @@ func (l *Larago) Init(p initPaths) error {
 func (l *Larago) ListenAndServe() error {
 	srv := &http.Server{
 		Addr:         fmt.Sprintf(":%s", l.config.port),
-		Handler:      l.routes(),
+		Handler:      l.Routes,
 		ErrorLog:     l.ErrorLog,
 		IdleTimeout:  30 * time.Second,
 		ReadTimeout:  30 * time.Second,
