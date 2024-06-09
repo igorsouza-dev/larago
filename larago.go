@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/igorsouza-dev/larago/render"
 	"github.com/joho/godotenv"
 )
 
@@ -19,6 +20,8 @@ type Larago struct {
 	ErrorLog *log.Logger
 	InfoLog  *log.Logger
 	Routes   *chi.Mux
+	Render   *render.Render
+	RootPath string
 	config   config
 }
 
@@ -58,11 +61,13 @@ func (l *Larago) New(rootPath string) error {
 	l.Version = os.Getenv("VERSION")
 	l.AppName = os.Getenv("APP_NAME")
 	l.Routes = l.routes().(*chi.Mux)
+	l.RootPath = rootPath
 
 	l.config = config{
 		port:     os.Getenv("PORT"),
 		renderer: os.Getenv("RENDERER"),
 	}
+	l.Render = l.createRenderer(l)
 
 	return nil
 }
@@ -112,4 +117,14 @@ func (l *Larago) startLoggers() (*log.Logger, *log.Logger) {
 	errorLog = log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	return infoLog, errorLog
+}
+
+func (l *Larago) createRenderer(lar *Larago) *render.Render {
+	renderer := render.Render{
+		Renderer: lar.config.renderer,
+		Port:     lar.config.port,
+		RootPath: lar.RootPath,
+	}
+
+	return &renderer
 }
