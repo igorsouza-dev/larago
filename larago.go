@@ -67,7 +67,8 @@ func (l *Larago) New(rootPath string) error {
 		port:     os.Getenv("PORT"),
 		renderer: os.Getenv("RENDERER"),
 	}
-	l.Render = l.createRenderer(l)
+
+	l.createRenderer()
 
 	return nil
 }
@@ -119,12 +120,12 @@ func (l *Larago) startLoggers() (*log.Logger, *log.Logger) {
 	return infoLog, errorLog
 }
 
-func (l *Larago) createRenderer(lar *Larago) *render.Render {
+func (l *Larago) createRenderer() {
 	renderer := render.Render{
-		Renderer: lar.config.renderer,
-		Port:     lar.config.port,
-		RootPath: lar.RootPath,
+		Renderer: l.config.renderer,
+		Port:     l.config.port,
+		RootPath: l.RootPath,
 	}
 
-	return &renderer
+	l.Render = &renderer
 }
