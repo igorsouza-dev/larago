@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/CloudyKit/jet/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/igorsouza-dev/larago/render"
 	"github.com/joho/godotenv"
@@ -22,6 +23,7 @@ type Larago struct {
 	Routes   *chi.Mux
 	Render   *render.Render
 	RootPath string
+	JetViews *jet.Set
 	config   config
 }
 
@@ -67,6 +69,13 @@ func (l *Larago) New(rootPath string) error {
 		port:     os.Getenv("PORT"),
 		renderer: os.Getenv("RENDERER"),
 	}
+
+	views := jet.NewSet(
+		jet.NewOSFileSystemLoader(fmt.Sprintf("%s/views", rootPath)),
+		jet.InDevelopmentMode(),
+	)
+
+	l.JetViews = views
 
 	l.createRenderer()
 
@@ -125,6 +134,7 @@ func (l *Larago) createRenderer() {
 		Renderer: l.config.renderer,
 		Port:     l.config.port,
 		RootPath: l.RootPath,
+		JetViews: l.JetViews,
 	}
 
 	l.Render = &renderer
